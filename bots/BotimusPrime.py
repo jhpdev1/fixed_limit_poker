@@ -1,4 +1,5 @@
 """Random player"""
+from os import access
 import random
 from typing import Sequence
 
@@ -7,8 +8,8 @@ from environment.Constants import Action, Stage
 from bots.BotInterface import BotInterface
 from environment.Constants import Action
 from environment.Observation import Observation
-from utils.handValue import getHandPercent,getBoardHandType
-
+from utils.handValue import getHandPercent,getBoardHandType, getHandType
+Percent = 0.6
 # your bot class, rename to match the file name
 class BotimusPrime(BotInterface):
 
@@ -28,6 +29,8 @@ class BotimusPrime(BotInterface):
             If this function takes longer than 1 second, your bot will fold
         '''
         
+
+        
          # use different strategy depending on pre or post flop (before or after community cards are delt)
         opponent_actions_this_round = observation.get_opponent_history_current_stage()
         # Get the last action the opponent have done
@@ -36,32 +39,68 @@ class BotimusPrime(BotInterface):
         
         stage = observation.stage
         if stage == Stage.PREFLOP:
-            return self.handlePreFlop(observation)
+            return self.handlePreFlop(observation, last_action)
 
-        return self.handlePostFlop(observation)
+        return self.handlePostFlop(observation, last_action)
 
     def handlePreFlop(self, observation: Observation, last_action: Action) -> Action:
         # get my hand's percent value (how good is this 2 card hand out of all possible 2 card hands)
         handPercent, _ = getHandPercent(observation.myHand)
         # if my hand is top 20 percent: raise
-
-        if handPercent < .20:
-            return Action.RAISE
-        # if my hand is top 60 percent: call
-        elif handPercent < .60:
+        if last_action is None:
+            if handPercent < Percent *2:
+                return Action.RAISE
             return Action.CALL
-        # else fold
-        return Action.FOLD
+        if last_action is Action.RAISE:
+            if handPercent < Percent*0.5:
+                Action.RAISE
+            if handPercent < Percent *2:
+                Action.CALL
+            return Action.FOLD
+        if last_action in [Action.CHECK, Action.CALL]:
+            if handPercent < Percent *3:
+                return Action.RAISE
+            return Action.CALL
+        
+        
 
-    def handlePostFlop(self, observation: Observation) -> Action:
+    def handlePostFlop(self, observation: Observation, last_action: Action) -> Action:
         # get my hand's percent value (how good is the best 5 card hand i can make out of all possible 5 card hands)
         handPercent, cards = getHandPercent(
             observation.myHand, observation.boardCards)
+        boardhandtype = getBoardHandType(observation.boardCards)
+        myhandtype, _ = getHandType(observation.myHand,observation.boardCards)
+        rage = 0
+        if boardhandtype.value < myhandtype.value:
+            rage = 1
         # if my hand is top 30 percent: raise
-        if handPercent <= .30:
-            return Action.RAISE
-        # if my hand is top 80 percent: call
-        elif handPercent <= .40:
-            return Action.CALL
-        # else fold
-        return Action.FOLD
+        if last_action is None:
+            if rage == 1:                
+                if handPercent < Percent *2:
+                    return Action.RAISE
+                if handPercent < Percent *3.5:
+                    return Action.CHECK
+            if handPercent < Percent:
+                return Action.RAISE
+            return Action.CHECK
+            # opponent didn't do anything yet for us to counter, just raise            
+        elif last_action in [Action.CHECK, Action.CALL]:
+            if rage == 1:                
+                if handPercent < Percent*1.5:
+                    return Action.RAISE
+                if handPercent < Percent*2.5:
+                    return Action.CHECK
+            if handPercent < Percent:
+                return Action.RAISE
+            return Action.CHECK
+        elif last_action == Action.RAISE:
+            if rage == 1:                
+                if handPercent < Percent:
+                    return Action.RAISE
+                if handPercent < Percent*1.5:
+                    return Action.CHECK
+            if handPercent < Percent*0.5:
+                return Action.RAISE
+            if handPercent < Percent*2:
+                return Action.RAISE
+            return Action.FOLD
