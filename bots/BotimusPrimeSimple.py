@@ -11,10 +11,10 @@ from environment.Observation import Observation
 from utils.handValue import getHandPercent,getBoardHandType, getHandType
 Percent = 0.6
 # your bot class, rename to match the file name
-class BotimusPrime(BotInterface):
+class BotimusPrimeSimple(BotInterface):
 
     # change the name of your bot here
-    def __init__(self, name="BotimusPrime"):
+    def __init__(self, name="BotimusPrimeSimple"):
         '''init function'''
         super().__init__(name=name)
 
@@ -68,4 +68,4 @@ class BotimusPrime(BotInterface):
             return Action.CALL
         return Action.FOLD
 
-
+        
