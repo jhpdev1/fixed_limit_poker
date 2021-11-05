@@ -29,16 +29,22 @@ class BotimusPrime(BotInterface):
         '''
         
          # use different strategy depending on pre or post flop (before or after community cards are delt)
+        opponent_actions_this_round = observation.get_opponent_history_current_stage()
+        # Get the last action the opponent have done
+        last_action = opponent_actions_this_round[-1] if len(
+            opponent_actions_this_round) > 0 else None
+        
         stage = observation.stage
         if stage == Stage.PREFLOP:
             return self.handlePreFlop(observation)
 
         return self.handlePostFlop(observation)
 
-    def handlePreFlop(self, observation: Observation) -> Action:
+    def handlePreFlop(self, observation: Observation, last_action: Action) -> Action:
         # get my hand's percent value (how good is this 2 card hand out of all possible 2 card hands)
         handPercent, _ = getHandPercent(observation.myHand)
         # if my hand is top 20 percent: raise
+
         if handPercent < .20:
             return Action.RAISE
         # if my hand is top 60 percent: call
