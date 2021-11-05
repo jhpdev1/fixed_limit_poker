@@ -66,6 +66,13 @@ class BotimusPrime(BotInterface):
             opponent_actions_this_round) > 0 else None
         second_last_action = opponent_actions_this_round[-1] if len(
             opponent_actions_this_round) > 0 else None
+        raisecount = 0
+        for f in opponent_actions_this_round:
+            if f == Action.RAISE:
+                raisecount += 1
+        # if raisecount > 0:
+        #     self.Scale = self.Scale * (3/raisecount)
+        
         if myhandisPart:
             self.Scale = self.Scale *2
         if(last_action == Action.RAISE and second_last_action == Action.RAISE):
