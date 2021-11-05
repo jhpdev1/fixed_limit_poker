@@ -47,9 +47,9 @@ class BotimusPrime(BotInterface):
         # get my hand's percent value (how good is this 2 card hand out of all possible 2 card hands)
         handPercent, _ = getHandPercent(observation.myHand)
         # if my hand is top 20 percent: raise
-        if handPercent < 0.7:
+        if handPercent < 0.7*Scale:
             return Action.RAISE
-        if handPercent < 0.4:        
+        if handPercent < 0.4*Scale:        
             return Action.CALL
         return Action.FOLD
         
@@ -62,9 +62,9 @@ class BotimusPrime(BotInterface):
         boardhandtype = getBoardHandType(observation.boardCards)
         myhandtype, _ = getHandType(observation.myHand,observation.boardCards)        
         
-        if handPercent < 0.7:
+        if handPercent < 0.7*Scale:
             return Action.RAISE
-        if handPercent < 0.4:        
+        if handPercent < 0.4*Scale:        
             return Action.CALL
         return Action.FOLD
 
