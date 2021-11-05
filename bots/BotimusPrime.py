@@ -3,6 +3,8 @@ from os import access
 import random
 from typing import Sequence
 
+from pandas.core.accessor import register_index_accessor
+
 from environment.Constants import Action, Stage
 
 from bots.BotInterface import BotInterface
@@ -18,6 +20,7 @@ class BotimusPrime(BotInterface):
         '''init function'''
         super().__init__(name=name)
     Scale = 1.2
+    Luck = [1]
     def act(self, action_space:Sequence[Action], observation:Observation) -> Action: 
         '''
             This function gets called whenever it's your bots turn to act.
@@ -28,7 +31,9 @@ class BotimusPrime(BotInterface):
                     action (Action): the action you want you bot to take. Possible actions are: FOLD, CHECK, CALL and RAISE
             If this function takes longer than 1 second, your bot will fold
         '''
+        
         self.Scale = 1.2
+        
          # use different strategy depending on pre or post flop (before or after community cards are delt)
         opponent_actions_this_round = observation.get_opponent_history_current_stage()
         # Get the last action the opponent have done
@@ -44,10 +49,12 @@ class BotimusPrime(BotInterface):
     def handlePreFlop(self, observation: Observation, last_action: Action) -> Action:
         # get my hand's percent value (how good is this 2 card hand out of all possible 2 card hands)
         handPercent, _ = getHandPercent(observation.myHand)
+        self.Luck.append(handPercent)
         # if my hand is top 20 percent: raise
         if handPercent < 0.3*self.Scale:
+            
             return Action.RAISE
-        if handPercent < 0.8*self.Scale:        
+        if handPercent < 0.8*self.Scale:
             return Action.CALL
         return Action.FOLD
         
@@ -75,11 +82,12 @@ class BotimusPrime(BotInterface):
         
         if myhandisPart:
             self.Scale = self.Scale *2
-        if(last_action == Action.RAISE and second_last_action == Action.RAISE):
-            if handPercent < 0.2*self.Scale:
-                Action.FOLD
+        if(raisecount == len(opponent_actions_this_round)):
+            if handPercent < 0.3*self.Scale:
+                return Action.RAISE
+            return Action.FOLD
 
-        if handPercent < 0.4*self.Scale:
+        if handPercent < 0.5*self.Scale:
             return Action.RAISE
         if handPercent < 0.6*self.Scale:        
             return Action.CALL
