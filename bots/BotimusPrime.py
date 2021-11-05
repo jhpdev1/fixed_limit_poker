@@ -9,7 +9,7 @@ from bots.BotInterface import BotInterface
 from environment.Constants import Action
 from environment.Observation import Observation
 from utils.handValue import getHandPercent,getBoardHandType, getHandType
-Percent = 0.6
+Scale = 1.2
 # your bot class, rename to match the file name
 class BotimusPrime(BotInterface):
 
